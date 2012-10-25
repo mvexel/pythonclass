@@ -6,7 +6,7 @@ import states
 import os
 import sys
 
-datapath = 'c:\\Users\\mvexel\\geodata\\pythonclass\\'
+datapath = 'c:\\Users\\mvexel\\class\\data\\'
 gnisnames = []
 ponames = []
 statecnt = 0
