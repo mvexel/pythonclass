@@ -1,7 +1,6 @@
 import csv
 import requests
 from bs4 import BeautifulSoup as bs
-import re 
 import states
 import os
 import sys
