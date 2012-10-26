@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup as bs
 import states
 import os
 import sys
+import geojson
 
 # set the data path relative to the script
 datapath = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data'))
@@ -13,6 +14,7 @@ gnisnames = []
 statecnt = 0
 totalcnt = 0
 totalmatchcnt = 0
+features = []
 
 # PART 1: Load GNIS populated places
 # ----------------------------------
@@ -30,8 +32,12 @@ print 'done. %i GNIS populated places in memory.' % (len(gnisnames))
 csvwriter = csv.writer(open(os.path.join(datapath, 'target.csv'), 'wb'))
 csvwriter.writerow(('placename','statecode','lat','lon'))
 
+geojsonfile = open(os.path.join(datapath, 'target.json'), 'wb')
+
 # Iterate over all states
 for code, state in sorted(states.states.iteritems()):
+    if statecnt > 2:
+        break
     # reset counters and coordinate
     cnt = 0
     matchcnt = 0
@@ -77,6 +83,12 @@ for code, state in sorted(states.states.iteritems()):
                 matchcnt += 1
             # add the found (or nodata if we didn't find a match) coordinate to the record
             record += (lat,lon)
+            # create geojson object
+            coordinate = [lat,lon]
+            gjpoint = geojson.Point(coordinate)
+            properties = {'placename': '%s, %s' % (placename, code)}
+            gjfeature = geojson.Feature(geometry=gjpoint,properties=properties)
+            features.append(gjfeature)
             cnt += 1
             sys.stdout.write('%i matches /%i total (%.1f%% success)\r' % (matchcnt, cnt, (float(matchcnt) / float(cnt))*100))
             # ..and also write these to our file
@@ -85,4 +97,6 @@ for code, state in sorted(states.states.iteritems()):
     totalcnt += cnt
     totalmatchcnt += matchcnt
     statecnt += 1
+gjcollection = geojson.FeatureCollection(features)
+geojsonfile.write(geojson.dumps(gjcollection))
 print 'done. %i states scraped, %i total Target locations found, %i matched to GNIS populated place.' % (statecnt, totalcnt, totalmatchcnt)
